@@ -117,7 +117,7 @@ blah
 
 	// prog cmd2 -h
 	s = runOut("cmd2", "-h")
-	if strings.Contains(s, "-v=false: set verbosity") == false {
+	if strings.Contains(s, "set verbosity") == false {
 		t.Errorf("should include flag specs:\n%v", s)
 	}
 
