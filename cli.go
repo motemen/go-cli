@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"flag"
 	"fmt"
+	"io"
 	"os"
 	"sort"
 	"text/tabwriter"
@@ -13,6 +14,9 @@ import (
 type App struct {
 	Name     string
 	Commands map[string]*Command
+
+	ErrorWriter       io.Writer
+	FlagErrorHandling flag.ErrorHandling
 }
 
 // Command represents one of commands of App.
@@ -40,7 +44,9 @@ type Command struct {
 var (
 	// Default implementation of App. Its name is set to os.Args[0].
 	Default = &App{
-		Commands: Commands,
+		Commands:          Commands,
+		ErrorWriter:       os.Stderr,
+		FlagErrorHandling: flag.ExitOnError,
 	}
 	// Commands is default value of Default.Commands.
 	Commands = map[string]*Command{}
@@ -55,6 +61,8 @@ func Use(cmd *Command) { Default.Use(cmd) }
 // ErrUsage is the error indicating the user had wrong usage.
 var ErrUsage = fmt.Errorf("usage error")
 
+var exit = os.Exit
+
 func init() {
 	Default.Name = os.Args[0]
 }
@@ -64,36 +72,43 @@ func init() {
 func (app *App) Run(args []string) {
 	if len(args) == 0 {
 		app.PrintUsage()
-		os.Exit(2)
+		exit(2)
+		return
 	}
 
 	cmdName := args[0]
 	if cmd, ok := app.Commands[cmdName]; ok {
-		flags := flag.NewFlagSet(cmdName, flag.ExitOnError)
+		flags := flag.NewFlagSet(cmdName, app.FlagErrorHandling)
 		flags.Usage = func() {
-			fmt.Fprintln(os.Stderr, cmd.Usage(flags))
+			fmt.Fprintln(app.ErrorWriter, cmd.Usage(flags))
 		}
 
 		err := cmd.Action(flags, args[1:])
 		if err != nil {
 			if err == ErrUsage {
 				flags.Usage()
-				os.Exit(2)
+				exit(2)
+				return
+			} else if err == flag.ErrHelp {
+				exit(2)
+				return
 			} else {
-				fmt.Fprintln(os.Stderr, err)
-				os.Exit(1)
+				fmt.Fprintln(app.ErrorWriter, err)
+				exit(1)
+				return
 			}
 		}
 	} else {
 		app.PrintUsage()
-		os.Exit(2)
+		exit(2)
+		return
 	}
 }
 
 // PrintUsage prints out the usage of the program with its commands listed.
 func (app *App) PrintUsage() {
-	fmt.Fprintf(os.Stderr, "Usage: %s <command> [<args>]\n\n", app.Name)
-	fmt.Fprintf(os.Stderr, "Commands:\n")
+	fmt.Fprintf(app.ErrorWriter, "Usage: %s <command> [<args>]\n\n", app.Name)
+	fmt.Fprintf(app.ErrorWriter, "Commands:\n")
 
 	names := make([]string, 0, len(app.Commands))
 	for name := range app.Commands {
@@ -102,7 +117,7 @@ func (app *App) PrintUsage() {
 
 	sort.Strings(names)
 
-	w := tabwriter.NewWriter(os.Stderr, 0, 8, 4, ' ', 0)
+	w := tabwriter.NewWriter(app.ErrorWriter, 0, 8, 4, ' ', 0)
 	for _, name := range names {
 		fmt.Fprintf(w, "    %s\t%s\n", name, app.Commands[name].Short)
 	}
@@ -118,7 +133,16 @@ func (app *App) Use(cmd *Command) {
 func (c Command) Usage(flags *flag.FlagSet) string {
 	usage := fmt.Sprintf("Usage: %s", c.Long)
 
-	if flags == nil || flags.NFlag() == 0 {
+	if flags == nil {
+		return usage
+	}
+
+	var hasFlag bool
+	flags.VisitAll(func(_ *flag.Flag) {
+		hasFlag = true
+	})
+
+	if hasFlag == false {
 		return usage
 	}
 
