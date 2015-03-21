@@ -6,7 +6,7 @@ import (
 	"log"
 	"os"
 
-	"github.com/motemen/cli"
+	"github.com/motemen/go-cli"
 )
 
 func main() {

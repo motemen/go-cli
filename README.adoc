@@ -1,4 +1,4 @@
-= motemen/cli
+= motemen/go-cli
 
 Yet another CLI app builder with commands, based on documentation.
 
@@ -12,7 +12,7 @@ import (
     "flag"
     "os"
 
-    "github.com/motemen/cli"
+    "github.com/motemen/go-cli"
 )
 
 func main() {
@@ -66,7 +66,7 @@ Options:
 
 == Regsitering commands using documentation
 
-You may use github.com/motemen/cli/gen to automatically register commands and
+You may use github.com/motemen/go-cli/gen to automatically register commands and
 their usages using comment documentation. An example documentation for the
 example above:
 
@@ -92,7 +92,7 @@ You can use gen.Generate() to generate a source file like below:
 
 package main
 
-import "github.com/motemen/cli"
+import "github.com/motemen/go-cli"
 
 func init() {
     cli.Use(

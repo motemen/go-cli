@@ -1,19 +1,33 @@
 package main
 
 import (
+	"flag"
 	"log"
 	"os"
 
-	"github.com/motemen/cli/gen"
+	"github.com/motemen/go-cli/gen"
 )
 
+// go run _tools/gen.go -out generated.go source.go
 func main() {
-	out, err := os.Create("cmds.go")
+	out := flag.String("out", "", "output file")
+	flag.Parse()
+
+	if *out == "" {
+		log.Fatal("-out should be specified")
+	}
+
+	in := flag.Arg(0)
+	if in == "" {
+		log.Fatal("input file required")
+	}
+
+	w, err := os.Create(*out)
 	if err != nil {
 		log.Fatal(err)
 	}
 
-	err = gen.Generate(out, "main.go", nil)
+	err = gen.Generate(w, flag.Arg(0), nil)
 	if err != nil {
 		log.Fatal(err)
 	}

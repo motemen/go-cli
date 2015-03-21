@@ -1,4 +1,4 @@
-//go:generate go run _tools/gen.go
+//go:generate go run _tools/gen.go -out cmds.go $GOFILE
 
 package main
 
@@ -8,7 +8,7 @@ import (
 	"os"
 	"strconv"
 
-	"github.com/motemen/cli"
+	"github.com/motemen/go-cli"
 )
 
 func main() {
