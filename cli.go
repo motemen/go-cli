@@ -75,18 +75,19 @@ func (app *App) Run(args []string) {
 		}
 
 		err := cmd.Action(flags, args[1:])
-		if err == ErrUsage {
-			flags.Usage()
-			os.Exit(2)
-		} else {
-			fmt.Fprintln(os.Stderr, err)
-			os.Exit(1)
+		if err != nil {
+			if err == ErrUsage {
+				flags.Usage()
+				os.Exit(2)
+			} else {
+				fmt.Fprintln(os.Stderr, err)
+				os.Exit(1)
+			}
 		}
 	} else {
 		app.PrintUsage()
 		os.Exit(2)
 	}
-
 }
 
 // PrintUsage prints out the usage of the program with its commands listed.
