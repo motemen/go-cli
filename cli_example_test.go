@@ -1,4 +1,4 @@
-package main
+package cli_test
 
 import (
 	"flag"
@@ -9,7 +9,10 @@ import (
 	"github.com/motemen/go-cli"
 )
 
-func main() {
+func Example() {
+	cli.Default.Name = "eg"             // defaults to os.Args[0]
+	cli.Default.ErrorWriter = os.Stdout // defaults to os.Stderr
+
 	cli.Use(&cli.Command{
 		Name:  "foo",
 		Short: "description in one line",
@@ -40,4 +43,10 @@ Blah blah blah`,
 		},
 	})
 	cli.Run(os.Args[1:])
+
+	// Output:
+	// Usage: eg <command> [<args>]
+	//
+	// Commands:
+	//     foo    description in one line
 }
