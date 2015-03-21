@@ -32,16 +32,38 @@ const commandFormat = `
 	)
 `
 
-// Generate reads source file for command actions with their usage documentations and writes Go code that registers the command to cli.
-//
-// Usage documentation should be like below:
-//	// +command <name> - <short>
-//	//
-//	// <usage line>
-//	//
-//	// <long description>...
-//	func action(flags *flag.FlagSet, args []string) {
-//	}
+/*
+Generate reads source file for command actions with their usage documentations
+and writes Go code that registers the command to cli.
+
+Usage documentation should be like below:
+
+	// +command <name> - <short>
+	//
+	// <usage line>
+	//
+	// <long description>...
+	func action(flags *flag.FlagSet, args []string) {
+	}
+
+Currently, generated files will be like below:
+
+	// auto-generated file
+
+	package main
+
+	import "github.com/motemen/cli"
+
+	func init() {
+	    cli.Use(
+	        &cli.Command{
+	            Name:   "foo",
+	            ...
+	        }
+	    )
+	    ...
+	}
+*/
 func Generate(w io.Writer, path string, src interface{}) error {
 	fset := token.NewFileSet()
 	f, err := parser.ParseFile(fset, path, nil, parser.ParseComments)

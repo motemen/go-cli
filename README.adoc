@@ -1,0 +1,111 @@
+= motemen/cli
+
+Yet another CLI app builder with commands, based on documentation.
+
+== Example
+
+[source,go]
+----
+package main
+
+import (
+    "flag"
+    "os"
+
+    "github.com/motemen/cli"
+)
+
+func main() {
+    cli.Use(&cli.Command{
+        Name:  "foo",
+        Short: "description in one line",
+        Long: `foo [-v] <arg>
+
+Description in paragraphs, starting with a usage line.
+Blah blah blah`,
+        Action: func(flags *flag.FlagSet, args []string) error {
+            // Initialize and parse flags inside Action
+            verbose := flags.Bool("v", false, "set verbosity")
+            flags.Parse(args)
+
+            args = flags.Args()
+            if len(args) < 1 {
+                // Return cli.ErrUsage to show the command usage to the user
+                return cli.ErrUsage
+            }
+
+            ...
+
+            return nil
+        },
+    })
+    cli.Run(os.Args[1:])
+}
+----
+
+Example output:
+
+----
+% prog
+Usage: prog <command> [<args>]
+
+Commands:
+    foo    description in one line
+----
+
+----
+% prog foo -h
+Usage: foo [-v] <arg>
+
+Description in paragraphs, starting with a usage line.
+Blah blah blah
+
+Options:
+  -v=false: set verbosity
+----
+
+== Regsitering commands using documentation
+
+You may use github.com/motemen/cli/gen to automatically register commands and
+their usages using comment documentation. An example documentation for the
+example above:
+
+[source,go]
+----
+
+// +command foo - description in on elin
+//
+//   foo [-v] <arg>
+//
+// Description in paragraphs, starting with a usage line.
+// Blah blah blah
+func actionFoo(flags *flag.FlagSet, args []string) error {
+    ...
+}
+----
+
+You can use gen.Generate() to generate a source file like below:
+
+[source,go]
+----
+// auto-generated file
+
+package main
+
+import "github.com/motemen/cli"
+
+func init() {
+    cli.Use(
+        &cli.Command{
+            Name:   "foo",
+            ...
+        },
+    )
+}
+----
+
+Include this file to the build and you can maintain CLI commands using documentation. For complete example, refer to the _example directory.
+
+== Author
+
+motemen <motemen@gmail.com>
