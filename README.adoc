@@ -1,4 +1,4 @@
-= motemen/go-cli image:https://travis-ci.org/motemen/go-cli.svg?branch=master["Build Status", link="https://travis-ci.org/motemen/go-cli"] image:http://godoc.org/github.com/motemen/go-cli?status.svg["GoDoc", link="http://godoc.org/github.com/motemen/go-cli"] image:http://gocover.io/_badge/github.com/motemen/go-cli["Test Coverage", link="http://gocover.io/github.com/motemen/go-cli"]
+= go-cli image:https://travis-ci.org/motemen/go-cli.svg?branch=master["Build Status", link="https://travis-ci.org/motemen/go-cli"] image:http://godoc.org/github.com/motemen/go-cli?status.svg["GoDoc", link="http://godoc.org/github.com/motemen/go-cli"] image:http://gocover.io/_badge/github.com/motemen/go-cli["Test Coverage", link="http://gocover.io/github.com/motemen/go-cli"]
 
 Yet another CLI app builder with commands, based on documentation.
 
@@ -64,7 +64,7 @@ Options:
   -v=false: set verbosity
 ----
 
-== Regsitering commands using documentation
+== Registering commands using documentation
 
 You may use github.com/motemen/go-cli/gen to automatically register commands and
 their usages using comment documentation. An example documentation for the
