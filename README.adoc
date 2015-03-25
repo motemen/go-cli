@@ -73,11 +73,11 @@ example above:
 [source,go]
 ----
 
-// +command foo - description in on elin
+// +command foo - description in one line
 //
 //   foo [-v] <arg>
 //
-// Description in paragraphs, starting with a usage line.
+// Description in paragraphs after a usage line.
 // Blah blah blah
 func actionFoo(flags *flag.FlagSet, args []string) error {
     ...
