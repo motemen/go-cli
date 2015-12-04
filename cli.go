@@ -10,6 +10,7 @@ import (
 	"io"
 	"os"
 	"sort"
+	"strings"
 	"text/tabwriter"
 )
 
@@ -73,29 +74,29 @@ func init() {
 	Default.Name = os.Args[0]
 }
 
+func resolveSub(args []string) (string, []string) {
+	if len(args) == 0 || strings.HasPrefix(args[0], "-") {
+		return "", args
+	}
+	return args[0], args[1:]
+}
+
 // Dispatch is yet another entry point which returns error
 func (app *App) Dispatch(args []string) error {
-	if len(args) == 0 {
-		app.PrintUsage()
-		return ErrUsage
-	}
-
-	cmdName := args[0]
+	cmdName, args := resolveSub(args)
 	if cmd, ok := app.Commands[cmdName]; ok {
 		flags := flag.NewFlagSet(cmdName, app.FlagErrorHandling)
 		flags.Usage = func() {
 			fmt.Fprintln(app.ErrorWriter, cmd.Usage(flags))
 		}
-		err := cmd.Action(flags, args[1:])
+		err := cmd.Action(flags, args)
 		if err == ErrUsage {
 			flags.Usage()
 		}
 		return err
-	} else {
-		app.PrintUsage()
-		return ErrUsage
 	}
-	return nil
+	app.PrintUsage()
+	return ErrUsage
 }
 
 // Run is the entry point of the program. It recognizes the first element of
