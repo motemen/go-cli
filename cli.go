@@ -70,13 +70,11 @@ func init() {
 	Default.Name = os.Args[0]
 }
 
-// Run is the entry point of the program. It recognizes the first element of
-// args as a command name, and dispatches a command with rest arguments.
-func (app *App) Run(args []string) {
+// Dispatch is yet another entry point which returns error
+func (app *App) Dispatch(args []string) error {
 	if len(args) == 0 {
 		app.PrintUsage()
-		exit(2)
-		return
+		return ErrUsage
 	}
 
 	cmdName := args[0]
@@ -85,27 +83,33 @@ func (app *App) Run(args []string) {
 		flags.Usage = func() {
 			fmt.Fprintln(app.ErrorWriter, cmd.Usage(flags))
 		}
-
 		err := cmd.Action(flags, args[1:])
-		if err != nil {
-			if err == ErrUsage {
-				flags.Usage()
-				exit(2)
-				return
-			} else if err == flag.ErrHelp {
-				exit(2)
-				return
-			} else {
-				fmt.Fprintln(app.ErrorWriter, err)
-				exit(1)
-				return
-			}
+		if err == ErrUsage {
+			flags.Usage()
 		}
+		return err
 	} else {
 		app.PrintUsage()
-		exit(2)
-		return
+		return ErrUsage
 	}
+	return nil
+}
+
+// Run is the entry point of the program. It recognizes the first element of
+// args as a command name, and dispatches a command with rest arguments.
+func (app *App) Run(args []string) {
+	err := app.Dispatch(args)
+	exitCode := 0
+	switch err {
+	case nil:
+		// nop
+	case ErrUsage, flag.ErrHelp:
+		exitCode = 2
+	default:
+		fmt.Fprintln(app.ErrorWriter, err)
+		exitCode = 1
+	}
+	exit(exitCode)
 }
 
 // PrintUsage prints out the usage of the program with its commands listed.
