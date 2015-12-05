@@ -16,6 +16,16 @@ func main() {
 }
 
 /*
++command - generate example
+
+if no subcommands are specified, run it.
+*/
+func actionMain(flags *flag.FlagSet, args []string) error {
+	log.Println("main")
+	return nil
+}
+
+/*
 +command up - count up!
 
 	up [-f <from>] <count>

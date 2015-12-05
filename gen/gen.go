@@ -10,6 +10,7 @@ import (
 	"io"
 	"regexp"
 	"strings"
+	"unicode"
 )
 
 const fileFormat = `// auto-generated file
@@ -86,17 +87,22 @@ func Generate(w io.Writer, path string, src interface{}) error {
 		}
 
 		doc = doc[pos+len("+command "):]
-		re := regexp.MustCompile(`^ *(\S+) +- +(.+)\n((?s).+)`)
+		re := regexp.MustCompile(`^\s*([^-]*)-\s+(.+)\n((?s).+)`)
 		m := re.FindStringSubmatch(doc)
 		if m == nil {
 			continue
 		}
 
 		var (
-			name  = m[1]
+			name  = strings.TrimSpace(m[1])
 			short = m[2]
 			long  = strings.TrimSpace(m[3])
 		)
+		for _, c := range name {
+			if unicode.IsSpace(c) {
+				continue
+			}
+		}
 
 		commandCodes = append(
 			commandCodes,
