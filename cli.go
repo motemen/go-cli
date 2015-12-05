@@ -58,6 +58,9 @@ var (
 // Run is a shortcut for Default.Run.
 func Run(args []string) { Default.Run(args) }
 
+// Dispatch is shortcut for Default.Dispatch.
+func Dispatch(args []string) error { return Default.Dispatch(args) }
+
 // Use is a shortcut for Default.Use.
 func Use(cmd *Command) { Default.Use(cmd) }
 
