@@ -74,20 +74,25 @@ func init() {
 	Default.Name = os.Args[0]
 }
 
-func resolveSub(args []string) (string, []string) {
+const mainCmd = ""
+
+func resolveCmd(args []string) (string, []string) {
 	if len(args) == 0 || strings.HasPrefix(args[0], "-") {
-		return "", args
+		return mainCmd, args
 	}
 	return args[0], args[1:]
 }
 
 // Dispatch is yet another entry point which returns error
 func (app *App) Dispatch(args []string) error {
-	cmdName, args := resolveSub(args)
+	cmdName, args := resolveCmd(args)
 	if cmd, ok := app.Commands[cmdName]; ok {
 		flags := flag.NewFlagSet(cmdName, app.FlagErrorHandling)
 		flags.Usage = func() {
 			fmt.Fprintln(app.ErrorWriter, cmd.Usage(flags))
+			if cmdName == mainCmd {
+				app.PrintUsage()
+			}
 		}
 		err := cmd.Action(flags, args)
 		if err == ErrUsage {
