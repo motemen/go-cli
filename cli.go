@@ -135,7 +135,11 @@ func (app *App) PrintUsage() {
 
 	w := tabwriter.NewWriter(app.ErrorWriter, 0, 8, 4, ' ', 0)
 	for _, name := range names {
-		fmt.Fprintf(w, "    %s\t%s\n", name, app.Commands[name].Short)
+		n := name
+		if name == mainCmd {
+			n = "[main]"
+		}
+		fmt.Fprintf(w, "    %s\t%s\n", n, app.Commands[name].Short)
 	}
 	w.Flush()
 }
