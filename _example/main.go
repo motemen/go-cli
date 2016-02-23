@@ -16,7 +16,7 @@ func main() {
 }
 
 /*
-+command - generate example
++main - generate example
 
 if no subcommands are specified, run it.
 */

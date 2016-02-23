@@ -10,7 +10,6 @@ import (
 	"io"
 	"regexp"
 	"strings"
-	"unicode"
 )
 
 const fileFormat = `// auto-generated file
@@ -32,6 +31,9 @@ const commandFormat = `
 		},
 	)
 `
+
+var commandReg = regexp.MustCompile(`^ *(\S+) +- +(.+)\n((?s).+)`)
+var mainReg = regexp.MustCompile(`^ *- +(.+)\n((?s).+)`)
 
 /*
 Generate reads source file for command actions with their usage documentations
@@ -81,27 +83,38 @@ func Generate(w io.Writer, path string, src interface{}) error {
 		}
 
 		doc := funcDecl.Doc.Text()
+		isMain := false
 		pos := strings.Index(doc, "+command")
 		if pos == -1 {
-			continue
-		}
-
-		doc = doc[pos+len("+command "):]
-		re := regexp.MustCompile(`^\s*([^-]*)-\s+(.+)\n((?s).+)`)
-		m := re.FindStringSubmatch(doc)
-		if m == nil {
-			continue
+			pos = strings.Index(doc, "+main")
+			if pos == -1 {
+				continue
+			}
+			isMain = true
 		}
 
 		var (
-			name  = strings.TrimSpace(m[1])
-			short = m[2]
-			long  = strings.TrimSpace(m[3])
+			name  string
+			short string
+			long  string
 		)
-		for _, c := range name {
-			if unicode.IsSpace(c) {
+		if isMain {
+			doc = doc[pos+len("+main "):]
+			m := mainReg.FindStringSubmatch(doc)
+			if m == nil {
 				continue
 			}
+			short = m[1]
+			long = strings.TrimSpace(m[2])
+		} else {
+			doc = doc[pos+len("+command "):]
+			m := commandReg.FindStringSubmatch(doc)
+			if m == nil {
+				continue
+			}
+			name = m[1]
+			short = m[2]
+			long = strings.TrimSpace(m[3])
 		}
 
 		commandCodes = append(
