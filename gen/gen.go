@@ -66,6 +66,18 @@ Currently, generated files will be like below:
 	    )
 	    ...
 	}
+
+You can define `nain action` without sub-command.
+Usage documentation of main action should be like below:
+
+	// +main - <short>
+	//
+	// <usage line>
+	//
+	// <long description>...
+	func mainAction(flags *flag.FlagSet, args []string) {
+		...
+	}
 */
 func Generate(w io.Writer, path string, src interface{}) error {
 	fset := token.NewFileSet()
