@@ -67,7 +67,7 @@ Currently, generated files will be like below:
 	    ...
 	}
 
-You can define `nain action` without sub-command.
+You can define `main action` without sub-command.
 Usage documentation of main action should be like below:
 
 	// +main - <short>
