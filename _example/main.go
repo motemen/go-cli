@@ -18,6 +18,8 @@ func main() {
 /*
 +main - generate example
 
+	main.go [command] [args...]
+
 if no subcommands are specified, run it.
 */
 func actionMain(flags *flag.FlagSet, args []string) error {
