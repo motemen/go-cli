@@ -137,7 +137,7 @@ func (app *App) PrintUsage() {
 	for _, name := range names {
 		n := name
 		if name == mainCmd {
-			n = "[main]"
+			n = "<no command>"
 		}
 		fmt.Fprintf(w, "    %s\t%s\n", n, app.Commands[name].Short)
 	}
