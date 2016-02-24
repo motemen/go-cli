@@ -91,7 +91,7 @@ func (app *App) Dispatch(args []string) error {
 		flags.Usage = func() {
 			fmt.Fprintln(app.ErrorWriter, cmd.Usage(flags))
 			if cmdName == mainCmd {
-				app.PrintUsage()
+				app.printUsageWithoutHeader()
 			}
 		}
 		err := cmd.Action(flags, args)
@@ -124,6 +124,10 @@ func (app *App) Run(args []string) {
 // PrintUsage prints out the usage of the program with its commands listed.
 func (app *App) PrintUsage() {
 	fmt.Fprintf(app.ErrorWriter, "Usage: %s <command> [<args>]\n\n", app.Name)
+	app.printUsageWithoutHeader()
+}
+
+func (app *App) printUsageWithoutHeader() {
 	fmt.Fprintf(app.ErrorWriter, "Commands:\n")
 
 	names := make([]string, 0, len(app.Commands))
