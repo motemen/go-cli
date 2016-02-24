@@ -16,6 +16,23 @@ func main() {
 }
 
 /*
++main - greeting
+
+	main -name=motemen
+
+if no subcommands are specified, greet motemen (or specified name by -name flag)
+with a bow.
+*/
+func actionMain(flags *flag.FlagSet, args []string) error {
+	var name string
+	flags.StringVar(&name, "name", "motemen", "hello!")
+
+	flags.Parse(args)
+	log.Printf("hello! %s :bow:\n", name)
+	return nil
+}
+
+/*
 +command up - count up!
 
 	up [-f <from>] <count>

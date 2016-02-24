@@ -10,6 +10,7 @@ import (
 	"io"
 	"os"
 	"sort"
+	"strings"
 	"text/tabwriter"
 )
 
@@ -73,29 +74,34 @@ func init() {
 	Default.Name = os.Args[0]
 }
 
+const mainCmd = ""
+
+func resolveCmd(args []string) (string, []string) {
+	if len(args) == 0 || strings.HasPrefix(args[0], "-") {
+		return mainCmd, args
+	}
+	return args[0], args[1:]
+}
+
 // Dispatch is yet another entry point which returns error
 func (app *App) Dispatch(args []string) error {
-	if len(args) == 0 {
-		app.PrintUsage()
-		return ErrUsage
-	}
-
-	cmdName := args[0]
+	cmdName, args := resolveCmd(args)
 	if cmd, ok := app.Commands[cmdName]; ok {
 		flags := flag.NewFlagSet(cmdName, app.FlagErrorHandling)
 		flags.Usage = func() {
 			fmt.Fprintln(app.ErrorWriter, cmd.Usage(flags))
+			if cmdName == mainCmd {
+				app.printUsageWithoutHeader()
+			}
 		}
-		err := cmd.Action(flags, args[1:])
+		err := cmd.Action(flags, args)
 		if err == ErrUsage {
 			flags.Usage()
 		}
 		return err
-	} else {
-		app.PrintUsage()
-		return ErrUsage
 	}
-	return nil
+	app.PrintUsage()
+	return ErrUsage
 }
 
 // Run is the entry point of the program. It recognizes the first element of
@@ -118,6 +124,10 @@ func (app *App) Run(args []string) {
 // PrintUsage prints out the usage of the program with its commands listed.
 func (app *App) PrintUsage() {
 	fmt.Fprintf(app.ErrorWriter, "Usage: %s <command> [<args>]\n\n", app.Name)
+	app.printUsageWithoutHeader()
+}
+
+func (app *App) printUsageWithoutHeader() {
 	fmt.Fprintf(app.ErrorWriter, "Commands:\n")
 
 	names := make([]string, 0, len(app.Commands))
@@ -129,7 +139,11 @@ func (app *App) PrintUsage() {
 
 	w := tabwriter.NewWriter(app.ErrorWriter, 0, 8, 4, ' ', 0)
 	for _, name := range names {
-		fmt.Fprintf(w, "    %s\t%s\n", name, app.Commands[name].Short)
+		n := name
+		if name == mainCmd {
+			n = "<no command>"
+		}
+		fmt.Fprintf(w, "    %s\t%s\n", n, app.Commands[name].Short)
 	}
 	w.Flush()
 }

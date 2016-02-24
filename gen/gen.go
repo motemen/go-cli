@@ -32,6 +32,9 @@ const commandFormat = `
 	)
 `
 
+var commandReg = regexp.MustCompile(`^ *(\S+) +- +(.+)\n((?s).+)`)
+var mainReg = regexp.MustCompile(`^ *- +(.+)\n((?s).+)`)
+
 /*
 Generate reads source file for command actions with their usage documentations
 and writes Go code that registers the command to cli.
@@ -63,10 +66,22 @@ Currently, generated files will be like below:
 	    )
 	    ...
 	}
+
+You can define `main action` without sub-command.
+Usage documentation of main action should be like below:
+
+	// +main - <short>
+	//
+	// <usage line>
+	//
+	// <long description>...
+	func mainAction(flags *flag.FlagSet, args []string) {
+		...
+	}
 */
 func Generate(w io.Writer, path string, src interface{}) error {
 	fset := token.NewFileSet()
-	f, err := parser.ParseFile(fset, path, nil, parser.ParseComments)
+	f, err := parser.ParseFile(fset, path, src, parser.ParseComments)
 	if err != nil {
 		return err
 	}
@@ -80,23 +95,39 @@ func Generate(w io.Writer, path string, src interface{}) error {
 		}
 
 		doc := funcDecl.Doc.Text()
+		isMain := false
 		pos := strings.Index(doc, "+command")
 		if pos == -1 {
-			continue
-		}
-
-		doc = doc[pos+len("+command "):]
-		re := regexp.MustCompile(`^ *(\S+) +- +(.+)\n((?s).+)`)
-		m := re.FindStringSubmatch(doc)
-		if m == nil {
-			continue
+			pos = strings.Index(doc, "+main")
+			if pos == -1 {
+				continue
+			}
+			isMain = true
 		}
 
 		var (
-			name  = m[1]
-			short = m[2]
-			long  = strings.TrimSpace(m[3])
+			name  string
+			short string
+			long  string
 		)
+		if isMain {
+			doc = doc[pos+len("+main "):]
+			m := mainReg.FindStringSubmatch(doc)
+			if m == nil {
+				continue
+			}
+			short = m[1]
+			long = strings.TrimSpace(m[2])
+		} else {
+			doc = doc[pos+len("+command "):]
+			m := commandReg.FindStringSubmatch(doc)
+			if m == nil {
+				continue
+			}
+			name = m[1]
+			short = m[2]
+			long = strings.TrimSpace(m[3])
+		}
 
 		commandCodes = append(
 			commandCodes,

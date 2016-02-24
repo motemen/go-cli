@@ -124,7 +124,7 @@ blah
 	// prog cmd3
 	s = runOut("cmd3")
 	if strings.Contains(s, "internal error") == false {
-		t.Error("should include error inside action:\n%v", s)
+		t.Errorf("should include error inside action:\n%v", s)
 	}
 
 	// prog cmdX
