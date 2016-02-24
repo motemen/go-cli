@@ -81,7 +81,7 @@ Usage documentation of main action should be like below:
 */
 func Generate(w io.Writer, path string, src interface{}) error {
 	fset := token.NewFileSet()
-	f, err := parser.ParseFile(fset, path, nil, parser.ParseComments)
+	f, err := parser.ParseFile(fset, path, src, parser.ParseComments)
 	if err != nil {
 		return err
 	}
