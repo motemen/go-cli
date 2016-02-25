@@ -1,0 +1,7 @@
+= go-cli example
+
+Run below to obtain `_example` executable.
+
+----
+go generate && go build
+----
