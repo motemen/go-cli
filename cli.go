@@ -76,32 +76,35 @@ func init() {
 
 const mainCmd = ""
 
-func resolveCmd(args []string) (string, []string) {
+func (app *App) resolveCmd(args []string) (*Command, []string) {
 	if len(args) == 0 || strings.HasPrefix(args[0], "-") {
-		return mainCmd, args
+		return app.Commands[mainCmd], args
 	}
-	return args[0], args[1:]
+	if cmd, ok := app.Commands[args[0]]; ok {
+		return cmd, args[1:]
+	}
+	return app.Commands[mainCmd], args
 }
 
 // Dispatch is yet another entry point which returns error
 func (app *App) Dispatch(args []string) error {
-	cmdName, args := resolveCmd(args)
-	if cmd, ok := app.Commands[cmdName]; ok {
-		flags := flag.NewFlagSet(cmdName, app.FlagErrorHandling)
-		flags.Usage = func() {
-			fmt.Fprintln(app.ErrorWriter, cmd.Usage(flags))
-			if cmdName == mainCmd {
-				app.printUsageWithoutHeader()
-			}
-		}
-		err := cmd.Action(flags, args)
-		if err == ErrUsage {
-			flags.Usage()
-		}
-		return err
+	cmd, args := app.resolveCmd(args)
+	if cmd == nil {
+		app.PrintUsage()
+		return ErrUsage
 	}
-	app.PrintUsage()
-	return ErrUsage
+	flags := flag.NewFlagSet(cmd.Name, app.FlagErrorHandling)
+	flags.Usage = func() {
+		fmt.Fprintln(app.ErrorWriter, cmd.Usage(flags))
+		if cmd.Name == mainCmd {
+			app.printUsageWithoutHeader()
+		}
+	}
+	err := cmd.Action(flags, args)
+	if err == ErrUsage {
+		flags.Usage()
+	}
+	return err
 }
 
 // Run is the entry point of the program. It recognizes the first element of
