@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"flag"
 	"fmt"
+	"reflect"
 	"strings"
 	"testing"
 )
@@ -147,5 +148,71 @@ func TestCommand_Usage(t *testing.T) {
 	usageWithoutFlags := cmd.Usage(nil)
 	if usageWithoutFlags != "Usage: cmd long usage..." {
 		t.Errorf("unexpected usage:\n%v", usageWithoutFlags)
+	}
+}
+
+func TestApp_resolveCmd(t *testing.T) {
+	cmd0 := &Command{
+		Name: "",
+	}
+	cmd1 := &Command{
+		Name: "cmd1",
+	}
+	cmd2 := &Command{
+		Name: "cmd2",
+	}
+	cmd3 := &Command{
+		Name: "cmd3",
+	}
+	app := &App{
+		Name:     "prog",
+		Commands: make(map[string]*Command),
+	}
+	app.Use(cmd0)
+	app.Use(cmd1)
+	app.Use(cmd2)
+	app.Use(cmd3)
+
+	testCases := []struct {
+		name string
+		argv []string
+		cmd  string
+		args []string
+	}{
+		{
+			name: "cmd1 with args",
+			argv: []string{"cmd1", "11", "22"},
+			cmd:  "cmd1",
+			args: []string{"11", "22"},
+		},
+		{
+			name: "empty argv",
+			argv: []string{},
+			cmd:  "",
+			args: []string{},
+		},
+		{
+			name: "main with args",
+			argv: []string{"arg1", "arg2"},
+			cmd:  "",
+			args: []string{"arg1", "arg2"},
+		},
+		{
+			name: "main with help",
+			argv: []string{"-h"},
+			cmd:  "",
+			args: []string{"-h"},
+		},
+	}
+	for _, tc := range testCases {
+		t.Run(tc.name, func(t *testing.T) {
+			cmd, args := app.resolveCmd(tc.argv)
+			if cmd.Name != tc.cmd {
+				t.Errorf("command name miss matched. out: %q, expected name: %q", cmd.Name, tc.cmd)
+			}
+			if !reflect.DeepEqual(tc.args, args) {
+				t.Errorf("args miss matched.\n   out: %#v\nexpect: %#v", args, tc.args)
+			}
+		})
 	}
 }
